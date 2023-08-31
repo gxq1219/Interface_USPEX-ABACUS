@@ -4,6 +4,8 @@ USPEX-2023.0.2/ABACUS interface
 
 USPEX-2023.0.2 is the latest python version of USPEX. The interface is written for ABACUS 3.3.0.
 
+If an exception occurs during the use of interface due to differences in versions, please modify it according to the error reported.
+
 To use the interface:
 
      1. Copy components.py to directory python3.X/site-packages/USPEX
