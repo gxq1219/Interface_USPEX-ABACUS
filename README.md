@@ -19,3 +19,6 @@ To use the interface:
      5. Copy USPEX-2023.0.2/random_cell to directory python3.10/site-packages/USPEX
      
      6. Install ase-abacus interface: https://gitlab.com/1041176461/ase-abacus
+
+More information about USPEX-2023.0.2 can be found from http://uspex-team.org.
+
