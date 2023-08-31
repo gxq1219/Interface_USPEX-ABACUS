@@ -10,9 +10,9 @@ To use the interface:
 
      1. Copy components.py to directory python3.X/site-packages/USPEX
      
-     2. Copy ASEInterfacesAdapter.py to directory python3.X/site-packages/USPEX/Stages
+     2. Copy ASEInterfacesAdapter.py to directory python3.X/site-packages/USPEX/Stages/Interfaces
      
-     3. Copy ABACUS_Interface.py to directory python3.X/site-packages/USPEX/Stages
+     3. Copy ABACUS_Interface.py to directory python3.X/site-packages/USPEX/Stages/Interfaces
      
      4. Add enviroment variable: export PATH=python3.X/site-packages/USPEX:$PATH
      
