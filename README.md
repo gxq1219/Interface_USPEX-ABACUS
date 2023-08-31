@@ -12,9 +12,9 @@ To use the interface:
      
      3. Copy ABACUS_Interface.py to directory python3.X/site-packages/USPEX/Stages
      
-     4. Add enviroment variable: export PATH=python3.10/site-packages/USPEX:$PATH
+     4. Add enviroment variable: export PATH=python3.X/site-packages/USPEX:$PATH
      
-     5. Copy USPEX-2023.0.2/random_cell to directory python3.10/site-packages/USPEX
+     5. Copy USPEX-2023.0.2/random_cell to directory python3.X/site-packages/USPEX
      
      6. Install ase-abacus interface: https://gitlab.com/1041176461/ase-abacus
 
