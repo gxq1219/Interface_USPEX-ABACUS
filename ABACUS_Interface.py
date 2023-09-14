@@ -63,9 +63,9 @@ class ABACUS_Interface:
     with open('Specific/NUMERICAL_ORBITAL','r') as orb:
         Lines_orb = orb.readlines()
         for line_orb in Lines_orb:
-            element_o = line.rstrip('\n').split()[0]
-            Orb = line.rstrip('\n').split()[1]
-            basis[element_o] = Orb
+            element = line_orb.rstrip('\n').split()[0]
+            Orb = line_orb.rstrip('\n').split()[1]
+            basis[element] = Orb
 
 
     # working output files
@@ -112,12 +112,12 @@ class ABACUS_Interface:
 
         #for x, p in self.pseudopotentials.items():
         #    assert p.exists()
-        if 'lcao' not in self.input:
-            self.basis = None
-        else:
-            self.basis = {s: orbital for s, orbital in basis.items()}
-            for x, orbital in self.basis.items():
-                assert orbital.exists()
+        with open(self.input, 'r') as file:
+            file_content = file.read()
+            if 'lcao' not in file_content:
+                self.basis = None
+            else:
+                self.basis = {s: orbital for s, orbital in basis.items()}
         self.failedSystems = []
         self.targetProperties = targetProperties if targetProperties is not None else ['structure', 'enthalpy']
 
@@ -138,6 +138,14 @@ class ABACUS_Interface:
                  upf = line.rstrip('\n').split()[2]
                  source_file = 'Specific' + "/" + upf
                  shutil.copy(source_file, calcFolder)
+
+        if self.basis is not None:
+             with open('Specific/NUMERICAL_ORBITAL', 'r') as orb:
+                 Lines =  orb.readlines()
+                 for line in Lines:
+                     ls = line.rstrip('\n').split()[1]
+                     source_file = 'Specific' + "/" + ls
+                     shutil.copy(source_file, calcFolder)
 
 
         ############################## INPUT ################################
@@ -177,7 +185,7 @@ class ABACUS_Interface:
             pse = None
 
         if self.basis is not None:
-            bas = {element : basi for elment, basi in self.basis.items() if element in set(symbols)}
+            bas = {element : basi for element, basi in self.basis.items() if element in set(symbols)}
         else:
             bas = None
         system['ase']=self.adapter.write(pj(calcFolder,self.stru_file), structure, pp = pse, basis = bas)
