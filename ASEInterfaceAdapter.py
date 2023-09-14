@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 from os.path import join as pj, exists as ex
 from ase.io.vasp import iread_vasp_out, read_vasp_xml, write_vasp
@@ -8,6 +9,7 @@ from ase.atoms import Atoms
 from ase.constraints import FixAtoms
 import os
 
+logger = logging.getLogger(__name__)
 class ASEInterfaceAdapter:
     structureType = None
     atomType = None
