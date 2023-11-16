@@ -1,7 +1,9 @@
 """
 USPEX.Stages.ABACUS_Interface
-===========================
 
+Last Updata : 2023.11.15
+
+===========================
 """
 import logging
 import numpy as np
@@ -17,13 +19,11 @@ from ase.io.abacus import AbacusOutCalcChunk, AbacusOutHeaderChunk
 
 logger = logging.getLogger(__name__)
 
-
 class ABACUS_Interface:
     '''
     Calculator for ABACUS.
     Local running
     '''
-
 
     inputFile, outputFile, errorFile = 'INPUT', 'output', 'error'
 
@@ -35,39 +35,6 @@ class ABACUS_Interface:
     orbital_file = 'Specific/NUMERICAL_ORBITAL'
     sub_file='Specific/run.sh'
 
-    with open("Specific/INPUT_1", "r") as file:
-        lines = file.readlines()
-        suffix_line = None
-        for line in lines:
-            if 'suffix' in line:
-                suffix_line = line
-                break
-        if suffix_line:
-            word = suffix_line.rstrip('\n').split('suffix')[0]
-        else:
-            word = ['USPEX']
-
-    #### Reading potential
-    pseudopotentials = dict()
-
-    with open('Specific/ATOMIC_SPECIES', 'r') as pse:
-        Lines =  pse.readlines()
-        for line in Lines:
-            element = line.rstrip('\n').split()[0]
-            mass = line.rstrip('\n').split()[1]
-            pot = line.rstrip('\n').split()[2]
-            pseudopotentials[element] = pot
-    
-    ### Reading orbital
-    basis = dict()
-    with open('Specific/NUMERICAL_ORBITAL','r') as orb:
-        Lines_orb = orb.readlines()
-        for line_orb in Lines_orb:
-            element = line_orb.rstrip('\n').split()[0]
-            Orb = line_orb.rstrip('\n').split()[1]
-            basis[element] = Orb
-
-
     # working output files
     log1_file = 'OUT.USPEX/running_cell-relax.log'
     log2_file = 'OUT.USPEX/running_relax.log'
@@ -75,49 +42,63 @@ class ABACUS_Interface:
     cif_file = 'OUT.USPEX/STRU_NOW.cif'
 
     DEFAULT_SLEEP_TIME = 30
-
     aseAdapterType = None
-
-    #print(pseudopotentials)
+    
     @classmethod
     def registerTypes(cls, aseAdapterType):
         cls.aseAdapterType = aseAdapterType
 
-    def __init__(self, tag: str, kresol: float, input: str = None, pseudopotentials = pseudopotentials, basis =  basis ,targetProperties: list = None, **kwargs):
+    def __init__(self, tag: str, kresol: float, input: str = None,targetProperties: list = None, **kwargs):
         '''
-        :param params: dictionary with parameters:
-                * commandExecutable: str of executable command
-                * kresol: float of K-points resolution
-                * remote: dict of remote server params
-                * taskManager: dict of task managers params
-        :param step: int of current step
+        Parameter definition:
+            tag : Current iteration step
+            kresol : The resolution of kpoints
+            input : The location of input file
+            targetProperties: Target properties
         '''
         self.tag = tag
         if input is not None:
             self.input = input
         else:
             self.input = pj(os.getcwd(), f'Specific/INPUT_{tag}')
+
         assert os.path.exists(self.input)
         self.output_file='OUT.USPEX'
         self.sub_file='Specific/run.sh'
         self.log_file1='OUT.USPEX/running_cell-relax.log'
         self.log_file2='OUT.USPEX/running_relax.log'
         self.log_file3='OUT.USPEX/running_scf.log'
-        #print(pseudopotentials)
         self.adapter = self.aseAdapterType()
         self.kPoints = KPoints(kresol)
-        #pseudopotentials_path = 'Specific/'
-        self.pseudopotentials = {s : p for s, p in pseudopotentials.items()}
-        #print(self.input)
 
-        #for x, p in self.pseudopotentials.items():
-        #    assert p.exists()
-        with open(self.input, 'r') as file:
-            file_content = file.read()
-            if 'lcao' not in file_content:
-                self.basis = None
-            else:
-                self.basis = {s: orbital for s, orbital in basis.items()}
+        #### Reading potential
+        pseudopotentials = dict()
+
+        with open('Specific/ATOMIC_SPECIES', 'r') as pse:
+            Lines =  pse.readlines()
+            for line in Lines:
+                element = line.rstrip('\n').split()[0]
+                mass = line.rstrip('\n').split()[1]
+                pot = line.rstrip('\n').split()[2]
+                pseudopotentials[element] = pot
+
+        ### Reading orbital
+        basis = dict()
+        with open('Specific/NUMERICAL_ORBITAL','r') as orb:
+            Lines_orb = orb.readlines()
+            for line_orb in Lines_orb:
+                element_o = line.rstrip('\n').split()[0]
+                Orb = line.rstrip('\n').split()[1]
+                basis[element_o] = Orb
+
+        self.pseudopotentials = {s : p for s, p in pseudopotentials.items()}
+
+        if 'lcao' not in self.input:
+            self.basis = None
+        else:
+            self.basis = {s: orbital for s, orbital in basis.items()}
+            for x, orbital in self.basis.items():
+                assert orbital.exists()
         self.failedSystems = []
         self.targetProperties = targetProperties if targetProperties is not None else ['structure', 'enthalpy']
 
@@ -127,9 +108,7 @@ class ABACUS_Interface:
         :param system: our system
         :return:
         '''
-        with open(pj(calcFolder, self.input_file), 'wt') as f:
-            pass
-       
+ 
         structure = system['structure']
 
         with open('Specific/ATOMIC_SPECIES', 'r') as pse:
@@ -138,14 +117,6 @@ class ABACUS_Interface:
                  upf = line.rstrip('\n').split()[2]
                  source_file = 'Specific' + "/" + upf
                  shutil.copy(source_file, calcFolder)
-
-        if self.basis is not None:
-             with open('Specific/NUMERICAL_ORBITAL', 'r') as orb:
-                 Lines =  orb.readlines()
-                 for line in Lines:
-                     ls = line.rstrip('\n').split()[1]
-                     source_file = 'Specific' + "/" + ls
-                     shutil.copy(source_file, calcFolder)
 
 
         ############################## INPUT ################################
@@ -179,13 +150,13 @@ class ABACUS_Interface:
         order = np.argsort(symbols)
         atoms = Atoms(symbols[order], structure.getCartesianCoordinates()[order], cell=cell.getCellVectors())
 
-        if self.pseudopotentials is not None:
+        if  self.pseudopotentials is not None:
             pse = {element : poten for element, poten in self.pseudopotentials.items() if element in set(symbols)}
         else:
             pse = None
 
         if self.basis is not None:
-            bas = {element : basi for element, basi in self.basis.items() if element in set(symbols)}
+            bas = {element : basi for elment, basi in self.basis.items() if element in set(symbols)}
         else:
             bas = None
         system['ase']=self.adapter.write(pj(calcFolder,self.stru_file), structure, pp = pse, basis = bas)
