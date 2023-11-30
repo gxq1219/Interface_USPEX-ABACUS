@@ -81,7 +81,6 @@ class ABACUS_Interface:
                 mass = line.rstrip('\n').split()[1]
                 pot = line.rstrip('\n').split()[2]
                 pseudopotentials[element] = pot
-        print(pseudopotentials)
         ### Reading orbital
         basis = dict()
         with open('Specific/NUMERICAL_ORBITAL','r') as orb:
